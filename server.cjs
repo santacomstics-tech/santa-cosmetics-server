@@ -27,12 +27,12 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// === Ruta para verificar que el server funciona ===
+// === Ruta test ===
 app.get("/", (req, res) => {
   res.send("Servidor Santa Cosmetics funcionando ✔");
 });
 
-// === Ruta de checkout ===
+// === Checkout ===
 app.post("/checkout", async (req, res) => {
   const { carrito, total, cliente } = req.body;
 
@@ -42,8 +42,10 @@ app.post("/checkout", async (req, res) => {
   console.log("Total:", total);
 
   try {
-    // Construir lista de productos como texto
-    const listaProductos = carrito.map(p => • ${p}).join("<br>");
+    // Construir lista de productos seguro para Node
+    const listaProductos = carrito
+      .map(p => • ${p})
+      .join("<br>");
 
     const emailHTML = `
       <h2>Nuevo pedido recibido</h2>
@@ -63,7 +65,7 @@ app.post("/checkout", async (req, res) => {
       <h3>Total: $${total.toLocaleString()}</h3>
 
       <hr>
-      <p>Envío generado manualmente por el vendedor.</p>
+      <p>El envío será gestionado por el vendedor manualmente.</p>
     `;
 
     await transporter.sendMail({
@@ -73,7 +75,7 @@ app.post("/checkout", async (req, res) => {
       html: emailHTML,
     });
 
-    console.log("📧 Correo enviado con éxito");
+    console.log("📧 Correo enviado");
     res.json({ success: true });
 
   } catch (error) {
@@ -82,7 +84,7 @@ app.post("/checkout", async (req, res) => {
   }
 });
 
-// === Iniciar servidor ===
+// === Start server ===
 app.listen(PORT, () => {
   console.log(🚀 Servidor de Santa Cosmetics corriendo en http://localhost:${PORT});
 });
