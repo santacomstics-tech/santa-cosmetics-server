@@ -5,12 +5,11 @@ require("dotenv").config();
 const express = require("express");
 const nodemailer = require("nodemailer");
 const cors = require("cors");
-const path = require("path");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// === Variables env ===
+// === Variables .env ===
 const EMAIL_USER = process.env.EMAIL_USER;
 const EMAIL_PASS = process.env.EMAIL_PASS;
 
@@ -18,10 +17,12 @@ const EMAIL_PASS = process.env.EMAIL_PASS;
 app.use(cors());
 app.use(express.json());
 
-// NO SERVIMOS PUBLIC porque Netlify sirve el frontend.
-// Render solo maneja el servidor.
+// === Ruta de prueba ===
+app.get("/", (req, res) => {
+  res.send("Servidor de Santa Cosmetics funcionando correctamente ✔️");
+});
 
-// === Transporter (envío de correo) ===
+// === Transporter correo ===
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -30,25 +31,19 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// === Ruta de prueba ===
-app.get("/", (req, res) => {
-  res.send("Servidor de Santa Cosmetics funcionando correctamente ✔️");
-});
-
 // === Ruta de checkout ===
 app.post("/checkout", async (req, res) => {
   try {
     const { carrito, total, cliente } = req.body;
 
     console.log("🛍 Pedido recibido:", cliente.nombre);
-    console.log("📦 Productos:", carrito);
 
-    // Crear lista para el correo
+    // Crear lista de productos SIN símbolos extraños
     const listaProductos = carrito
-      .map((p) => • ${p})
+      .map((p) => - ${p})
       .join("<br>");
 
-    // Crear cuerpo del mensaje
+    // Crear cuerpo del correo
     const emailBody = `
       <h2>Nuevo pedido recibido 💄</h2>
 
@@ -64,10 +59,10 @@ app.post("/checkout", async (req, res) => {
       <h3>🛒 Productos:</h3>
       ${listaProductos}
 
-      <p><strong>Total a pagar:</strong> $${total}</p>
+      <p><strong>Total:</strong> $${total}</p>
 
       <hr>
-      <p>Este correo fue generado automáticamente desde el servidor.</p>
+      <p>Pedido generado automáticamente.</p>
     `;
 
     // Enviar correo
@@ -80,22 +75,15 @@ app.post("/checkout", async (req, res) => {
 
     console.log("📧 Correo enviado correctamente");
 
-    res.json({
-      success: true,
-      message: "Pedido enviado y correo enviado exitosamente",
-    });
+    res.json({ success: true, message: "Pedido enviado correctamente" });
 
   } catch (err) {
     console.error("❌ Error en checkout:", err);
-    res.status(500).json({
-      success: false,
-      error: err.message,
-    });
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
 // === Iniciar servidor ===
 app.listen(PORT, () => {
-  console.log(🚀 Servidor corriendo en puerto ${PORT});
-});og("🚀 Servidor funcionando en puerto " + PORT);
+  console.log(🚀 Servidor corriendo en el puerto ${PORT});
 });
