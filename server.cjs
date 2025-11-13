@@ -1,6 +1,3 @@
-// ===============================
-// Servidor Santa Cosmetics
-// ===============================
 require("dotenv").config();
 const express = require("express");
 const nodemailer = require("nodemailer");
@@ -9,20 +6,18 @@ const cors = require("cors");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// === Variables .env ===
 const EMAIL_USER = process.env.EMAIL_USER;
 const EMAIL_PASS = process.env.EMAIL_PASS;
 
-// === Middleware ===
 app.use(cors());
 app.use(express.json());
 
-// === Ruta de prueba ===
+// Ruta raíz
 app.get("/", (req, res) => {
-  res.send("Servidor de Santa Cosmetics funcionando correctamente ✔️");
+  res.send("Servidor de Santa Cosmetics funcionando ✔️");
 });
 
-// === Transporter correo ===
+// Transporter correo
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -31,19 +26,15 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// === Ruta de checkout ===
+// Checkout
 app.post("/checkout", async (req, res) => {
   try {
     const { carrito, total, cliente } = req.body;
 
-    console.log("🛍 Pedido recibido:", cliente.nombre);
-
-    // Crear lista de productos SIN símbolos extraños
     const listaProductos = carrito
-      .map((p) => - ${p})
+      .map((p) => `- ${p}`)
       .join("<br>");
 
-    // Crear cuerpo del correo
     const emailBody = `
       <h2>Nuevo pedido recibido 💄</h2>
 
@@ -65,25 +56,21 @@ app.post("/checkout", async (req, res) => {
       <p>Pedido generado automáticamente.</p>
     `;
 
-    // Enviar correo
     await transporter.sendMail({
-      from: Santa Cosmetics <${EMAIL_USER}>,
+      from: `Santa Cosmetics <${EMAIL_USER}>`,
       to: EMAIL_USER,
       subject: "Nuevo pedido recibido 💄",
       html: emailBody,
     });
 
-    console.log("📧 Correo enviado correctamente");
-
     res.json({ success: true, message: "Pedido enviado correctamente" });
 
   } catch (err) {
-    console.error("❌ Error en checkout:", err);
+    console.error("Error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// === Iniciar servidor ===
 app.listen(PORT, () => {
-  console.log(🚀 Servidor corriendo en el puerto ${PORT});
+  console.log(`Servidor corriendo en puerto ${PORT}`);
 });
