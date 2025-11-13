@@ -1,6 +1,7 @@
 // ===============================
-// Servidor Santa Cosmetics
+// Servidor Santa Cosmetics (FINAL)
 // ===============================
+
 require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -10,15 +11,15 @@ const cors = require("cors");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// === Middleware ===
-app.use(cors());
-app.use(bodyParser.json());
-
-// === Variables de entorno ===
+// === Variables desde Render ===
 const EMAIL_USER = process.env.EMAIL_USER;
 const EMAIL_PASS = process.env.EMAIL_PASS;
 
-// === Transporter ===
+// === Middlewares ===
+app.use(cors());
+app.use(bodyParser.json());
+
+// === Transporter de correo ===
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -27,64 +28,59 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// === Ruta test ===
+// === Ruta raíz ===
 app.get("/", (req, res) => {
-  res.send("Servidor Santa Cosmetics funcionando ✔");
+  res.send("Servidor de Santa Cosmetics funcionando correctamente.");
 });
 
-// === Checkout ===
+// === Ruta de checkout ===
 app.post("/checkout", async (req, res) => {
-  const { carrito, total, cliente } = req.body;
-
-  console.log("🛍 Pedido recibido");
-  console.log("Cliente:", cliente);
-  console.log("Productos:", carrito);
-  console.log("Total:", total);
-
   try {
-    // Construir lista de productos seguro para Node
+    const { carrito, total, cliente } = req.body;
+
+    console.log("🛍 Pedido recibido:");
+    console.log("Cliente:", cliente);
+    console.log("Productos:", carrito);
+    console.log("Total:", total);
+
+    // Convertir productos a HTML seguro
     const listaProductos = carrito
-      .map(p => • ${p})
+      .map((p) => "• " + p)
       .join("<br>");
 
-    const emailHTML = `
+    // === Enviar correo ===
+    const emailBody = `
       <h2>Nuevo pedido recibido</h2>
-
-      <h3>Cliente</h3>
-      <p><strong>Nombre:</strong> ${cliente.nombre}</p>
+      <p><strong>Cliente:</strong> ${cliente.nombre}</p>
+      <p><strong>Teléfono:</strong> ${cliente.telefono}</p>
       <p><strong>Ciudad:</strong> ${cliente.ciudad}</p>
       <p><strong>Dirección:</strong> ${cliente.direccion}</p>
-      <p><strong>Teléfono:</strong> ${cliente.telefono}</p>
       <p><strong>Email:</strong> ${cliente.email}</p>
-
       <hr>
-
-      <h3>Productos</h3>
+      <h3>Productos:</h3>
       <p>${listaProductos}</p>
-
-      <h3>Total: $${total.toLocaleString()}</h3>
-
-      <hr>
-      <p>El envío será gestionado por el vendedor manualmente.</p>
+      <p><strong>Total:</strong> $${total}</p>
+      <p>📦 El envío será gestionado manualmente por Santa Cosmetics.</p>
     `;
 
     await transporter.sendMail({
       from: Santa Cosmetics <${EMAIL_USER}>,
       to: EMAIL_USER,
       subject: "Nuevo pedido recibido 💄",
-      html: emailHTML,
+      html: emailBody,
     });
 
-    console.log("📧 Correo enviado");
-    res.json({ success: true });
+    console.log("📧 Correo enviado con éxito");
+
+    return res.json({ success: true, message: "Pedido enviado y correo enviado." });
 
   } catch (error) {
-    console.error("❌ Error enviando correo:", error);
-    res.status(500).json({ success: false, error: error.message });
+    console.error("❌ Error en /checkout:", error);
+    return res.status(500).json({ success: false, error: error.message });
   }
 });
 
-// === Start server ===
+// === Iniciar servidor ===
 app.listen(PORT, () => {
-  console.log(🚀 Servidor de Santa Cosmetics corriendo en http://localhost:${PORT});
+  console.log("🚀 Servidor funcionando en puerto " + PORT);
 });
