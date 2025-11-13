@@ -1,6 +1,13 @@
 // ===============================
 // Servidor Santa Cosmetics (solo correo)
 // ===============================
+const cors = require("cors");
+app.use(cors({
+  origin: ["https://santa-cosmetics.netlify.app"], // cambia por tu dominio real
+  methods: ["GET", "POST"],
+  credentials: true
+}));
+
 require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -76,5 +83,3 @@ app.post("/checkout", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Servidor de Santa Cosmetics corriendo en http://localhost:${PORT}`);
 });
-
-
