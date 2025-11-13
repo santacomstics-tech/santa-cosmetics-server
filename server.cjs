@@ -1,25 +1,27 @@
 // ===============================
-// Servidor Santa Cosmetics (FINAL)
+// Servidor Santa Cosmetics
 // ===============================
-
 require("dotenv").config();
 const express = require("express");
-const bodyParser = require("body-parser");
 const nodemailer = require("nodemailer");
 const cors = require("cors");
+const path = require("path");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// === Variables desde Render ===
+// === Variables env ===
 const EMAIL_USER = process.env.EMAIL_USER;
 const EMAIL_PASS = process.env.EMAIL_PASS;
 
-// === Middlewares ===
+// === Middleware ===
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
 
-// === Transporter de correo ===
+// NO SERVIMOS PUBLIC porque Netlify sirve el frontend.
+// Render solo maneja el servidor.
+
+// === Transporter (envío de correo) ===
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -28,9 +30,9 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// === Ruta raíz ===
+// === Ruta de prueba ===
 app.get("/", (req, res) => {
-  res.send("Servidor de Santa Cosmetics funcionando correctamente.");
+  res.send("Servidor de Santa Cosmetics funcionando correctamente ✔️");
 });
 
 // === Ruta de checkout ===
@@ -38,31 +40,37 @@ app.post("/checkout", async (req, res) => {
   try {
     const { carrito, total, cliente } = req.body;
 
-    console.log("🛍 Pedido recibido:");
-    console.log("Cliente:", cliente);
-    console.log("Productos:", carrito);
-    console.log("Total:", total);
+    console.log("🛍 Pedido recibido:", cliente.nombre);
+    console.log("📦 Productos:", carrito);
 
-    // Convertir productos a HTML seguro
+    // Crear lista para el correo
     const listaProductos = carrito
-      .map((p) => "• " + p)
+      .map((p) => • ${p})
       .join("<br>");
 
-    // === Enviar correo ===
+    // Crear cuerpo del mensaje
     const emailBody = `
-      <h2>Nuevo pedido recibido</h2>
-      <p><strong>Cliente:</strong> ${cliente.nombre}</p>
-      <p><strong>Teléfono:</strong> ${cliente.telefono}</p>
+      <h2>Nuevo pedido recibido 💄</h2>
+
+      <h3>📌 Datos del cliente</h3>
+      <p><strong>Nombre:</strong> ${cliente.nombre}</p>
       <p><strong>Ciudad:</strong> ${cliente.ciudad}</p>
       <p><strong>Dirección:</strong> ${cliente.direccion}</p>
+      <p><strong>Teléfono:</strong> ${cliente.telefono}</p>
       <p><strong>Email:</strong> ${cliente.email}</p>
+
       <hr>
-      <h3>Productos:</h3>
-      <p>${listaProductos}</p>
-      <p><strong>Total:</strong> $${total}</p>
-      <p>📦 El envío será gestionado manualmente por Santa Cosmetics.</p>
+
+      <h3>🛒 Productos:</h3>
+      ${listaProductos}
+
+      <p><strong>Total a pagar:</strong> $${total}</p>
+
+      <hr>
+      <p>Este correo fue generado automáticamente desde el servidor.</p>
     `;
 
+    // Enviar correo
     await transporter.sendMail({
       from: Santa Cosmetics <${EMAIL_USER}>,
       to: EMAIL_USER,
@@ -70,17 +78,24 @@ app.post("/checkout", async (req, res) => {
       html: emailBody,
     });
 
-    console.log("📧 Correo enviado con éxito");
+    console.log("📧 Correo enviado correctamente");
 
-    return res.json({ success: true, message: "Pedido enviado y correo enviado." });
+    res.json({
+      success: true,
+      message: "Pedido enviado y correo enviado exitosamente",
+    });
 
-  } catch (error) {
-    console.error("❌ Error en /checkout:", error);
-    return res.status(500).json({ success: false, error: error.message });
+  } catch (err) {
+    console.error("❌ Error en checkout:", err);
+    res.status(500).json({
+      success: false,
+      error: err.message,
+    });
   }
 });
 
 // === Iniciar servidor ===
 app.listen(PORT, () => {
-  console.log("🚀 Servidor funcionando en puerto " + PORT);
+  console.log(🚀 Servidor corriendo en puerto ${PORT});
+});og("🚀 Servidor funcionando en puerto " + PORT);
 });
