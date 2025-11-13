@@ -3,7 +3,7 @@
 // ===============================
 const cors = require("cors");
 app.use(cors({
-  origin: ["https://santa-cosmetics.netlify.app"], // cambia por tu dominio real
+  origin: ["https://santacosmetics.netlify.app/"], // cambia por tu dominio real
   methods: ["GET", "POST"],
   credentials: true
 }));
