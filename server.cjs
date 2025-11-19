@@ -17,7 +17,7 @@ app.get("/", (req, res) => {
   res.send("Servidor de Santa Cosmetics funcionando ✔️");
 });
 
-// Transporter correo
+// Configuración de correo
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -31,10 +31,12 @@ app.post("/checkout", async (req, res) => {
   try {
     const { carrito, total, cliente } = req.body;
 
+    // Crear lista de productos
     const listaProductos = carrito
-      .map((p) => `- ${p}`)
+      .map((p) => - ${p})
       .join("<br>");
 
+    // Cuerpo del email
     const emailBody = `
       <h2>Nuevo pedido recibido 💄</h2>
 
@@ -47,7 +49,7 @@ app.post("/checkout", async (req, res) => {
 
       <hr>
 
-      <h3>🛒 Productos:</h3>
+      <h3>🛍 Productos:</h3>
       ${listaProductos}
 
       <p><strong>Total:</strong> $${total}</p>
@@ -56,21 +58,22 @@ app.post("/checkout", async (req, res) => {
       <p>Pedido generado automáticamente.</p>
     `;
 
+    // Enviar correo
     await transporter.sendMail({
-      from: `Santa Cosmetics <${EMAIL_USER}>`,
+      from: Santa Cosmetics <${EMAIL_USER}>,
       to: EMAIL_USER,
       subject: "Nuevo pedido recibido 💄",
       html: emailBody,
     });
 
-    res.json({ success: true, message: "Pedido enviado correctamente" });
+    return res.json({ success: true, message: "Pedido enviado correctamente" });
 
   } catch (err) {
     console.error("Error:", err);
-    res.status(500).json({ success: false, error: err.message });
+    return res.status(500).json({ success: false, error: err.message });
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`Servidor corriendo en puerto ${PORT}`);
+  console.log(Servidor corriendo en puerto ${PORT});
 });
