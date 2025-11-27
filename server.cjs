@@ -1,78 +1,51 @@
-// -----------------------------
-// Santa Cosmetics - Servidor
-// -----------------------------
-
-require("dotenv").config();
-const express = require("express");
-const cors = require("cors");
-const nodemailer = require("nodemailer");
+import express from "express";
+import nodemailer from "nodemailer";
 
 const app = express();
-const PORT = process.env.PORT || 10000;
-
-// -----------------------------
-// Middlewares
-// -----------------------------
-app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-// -----------------------------
-// Transporter para correo
-// -----------------------------
+// ======== CONFIGURA TU CORREO AQUI ========
+
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: process.env.EMAIL_USER,  // TU CORREO
-    pass: process.env.EMAIL_PASS   // CONTRASEÑA O APP PASSWORD
+    user: "TU_CORREO@gmail.com",
+    pass: "TU_CONTRASEÑA_DE_APP"  
   }
 });
 
-// -----------------------------
-// Ruta de prueba
-// -----------------------------
-app.get("/", (req, res) => {
-  res.json({ message: "Servidor activo Santa Cosmetics" });
-});
+// ======== RUTA QUE RECIBE PEDIDOS ========
+app.post("/enviar-correo", async (req, res) => {
+  const { nombre, direccion, telefono, carrito, total } = req.body;
 
-// -----------------------------
-// Checkout - ENVÍO DE CORREO
-// -----------------------------
-app.post("/checkout", async (req, res) => {
+  const productosHTML = carrito
+    .map(p => `${p.nombre} - ${p.seleccion} ($${p.precio})`)
+    .join("<br>");
+
+  const mensaje = `
+    <h2>Nuevo Pedido</h2>
+    <p><strong>Nombre:</strong> ${nombre}</p>
+    <p><strong>Dirección:</strong> ${direccion}</p>
+    <p><strong>Teléfono:</strong> ${telefono}</p>
+    <h3>Productos:</h3>
+    <p>${productosHTML}</p>
+    <p><strong>Total:</strong> $${total}</p>
+  `;
+
   try {
-    const { carrito, total } = req.body;
+    await transporter.sendMail({
+      from: "Santa Cosmetics",
+      to: "TU_CORREO_DESTINO@gmail.com",
+      subject: "Nuevo Pedido",
+      html: mensaje
+    });
 
-    if (!carrito || !Array.isArray(carrito)) {
-      return res.status(400).json({ success: false, message: "Carrito inválido" });
-    }
-
-    const htmlLista = carrito.map(item => `<li>${item}</li>`).join("");
-
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: process.env.EMAIL_USER,
-      subject: "Nueva compra - Santa Cosmetics",
-      html: `
-        <h2>Nuevo Pedido</h2>
-        <p><b>Total:</b> $${total.toLocaleString()}</p>
-        <p><b>Carrito:</b></p>
-        <ul>${htmlLista}</ul>
-      `
-    };
-
-    await transporter.sendMail(mailOptions);
-
-    return res.json({ success: true, message: "Correo enviado correctamente" });
-
-  } catch (err) {
-    console.error("Error en checkout:", err);
-    return res.status(500).json({ success: false, message: "Error al enviar correo" });
+    res.json({ ok: true });
+  } catch (error) {
+    console.log(error);
+    res.json({ ok: false });
   }
 });
 
-// -----------------------------
-// Iniciar servidor
-// -----------------------------
-app.listen(PORT, () => {
-  console.log(`Servidor funcionando en puerto ${PORT}`);
-});
+// Puerto para Render
+app.listen(10000, () => console.log("Servidor activo"));
