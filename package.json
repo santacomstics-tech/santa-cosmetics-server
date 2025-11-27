@@ -1,14 +1,13 @@
 {
   "name": "santa-cosmetics-server",
   "version": "1.0.0",
-  "description": "Servidor para procesar formularios y enviar correos",
-  "main": "server.cjs",
-  "scripts": {
-    "start": "node server.cjs"
-  },
+  "type": "module",
   "dependencies": {
-    "dotenv": "^16.4.5",
-    "express": "^4.19.2",
-    "nodemailer": "^6.9.8"
+    "body-parser": "^2.2.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^4.21.2",
+    "node-fetch": "^2.7.0",
+    "nodemailer": "^7.0.10"
   }
 }
