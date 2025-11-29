@@ -1,51 +1,64 @@
-import express from "express";
-import nodemailer from "nodemailer";
+const express = require("express");
+const cors = require("cors");
+const nodemailer = require("nodemailer");
+const bodyParser = require("body-parser");
 
 const app = express();
-app.use(express.json());
+app.use(cors());
+app.use(bodyParser.json());
 
-// ======== CONFIGURA TU CORREO AQUI ========
-
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: "TU_CORREO@gmail.com",
-    pass: "TU_CONTRASEÑA_DE_APP"  
-  }
+// === SERVIDOR CORRIENDO ===
+app.get("/", (req, res) => {
+  res.send("Servidor Santa Cosmetics funcionando ✔");
 });
 
-// ======== RUTA QUE RECIBE PEDIDOS ========
-app.post("/enviar-correo", async (req, res) => {
-  const { nombre, direccion, telefono, carrito, total } = req.body;
+// ====================================================
+//  ENVÍO DE CORREO
+// ====================================================
+app.post("/checkout", async (req, res) => {
+  const { carrito, total, buyer, emailTo } = req.body;
 
-  const productosHTML = carrito
-    .map(p => `${p.nombre} - ${p.seleccion} ($${p.precio})`)
-    .join("<br>");
+  const transport = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: "santacomstics@gmail.com",
+      pass: "tu_contraseña_de_aplicacion"  // IMPORTANTE: no tu contraseña normal
+    }
+  });
 
   const mensaje = `
-    <h2>Nuevo Pedido</h2>
-    <p><strong>Nombre:</strong> ${nombre}</p>
-    <p><strong>Dirección:</strong> ${direccion}</p>
-    <p><strong>Teléfono:</strong> ${telefono}</p>
-    <h3>Productos:</h3>
-    <p>${productosHTML}</p>
-    <p><strong>Total:</strong> $${total}</p>
+  Nuevo pedido recibido:
+
+  Cliente:
+  - Nombre: ${buyer.nombre}
+  - Dirección: ${buyer.direccion}
+  - Ciudad: ${buyer.ciudad}
+  - Teléfono: ${buyer.telefono}
+  - Correo: ${buyer.correo}
+
+  Productos:
+  ${carrito.map(i => "- " + i).join("\n")}
+
+  Total: $${total.toLocaleString("es-CO")}
   `;
 
   try {
-    await transporter.sendMail({
-      from: "Santa Cosmetics",
-      to: "TU_CORREO_DESTINO@gmail.com",
-      subject: "Nuevo Pedido",
-      html: mensaje
+    await transport.sendMail({
+      from: "Santa Cosmetics <santacomstics@gmail.com>",
+      to: emailTo,
+      subject: "Nuevo pedido desde Santa Cosmetics",
+      text: mensaje
     });
 
-    res.json({ ok: true });
+    res.json({ success: true });
   } catch (error) {
-    console.log(error);
-    res.json({ ok: false });
+    console.log("Error enviando correo:", error);
+    res.json({ success: false, error });
   }
 });
 
-// Puerto para Render
-app.listen(10000, () => console.log("Servidor activo"));
+// ====================================================
+// PUERTO PARA RENDER
+// ====================================================
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => console.log("Servidor activo en puerto", PORT));
